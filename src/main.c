@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
+#include <math.h>
 #include <stdbool.h>
 #include "common.h"
 #include "shaders.h"
@@ -79,14 +80,15 @@ i32 main() {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
-  // Unbind VAO and VBO (good practice)
+  // Unbind VAO and EBO (good practice)
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
 
   u32 shader =
       compileAndLinkShaders("shaders/triangle.vert", "shaders/triangle.frag");
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // Uncomment to draw in wireframe mode
+  /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
 
   while (!glfwWindowShouldClose(window)) {
     // Process input
@@ -96,8 +98,14 @@ i32 main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
+    float timeValue = glfwGetTime();
+    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+    int vertexColorLocation = glGetUniformLocation(shader, "ourColor");
+
     // Use the shader program and draw the triangle
     glUseProgram(shader);
+    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
