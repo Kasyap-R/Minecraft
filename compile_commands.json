@@ -1,0 +1,53 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "--debug",
+      "-I/opt/homebrew/include",
+      "-I./lib",
+      "-I./src/include",
+      "-c",
+      "-o",
+      "obj/main.o",
+      "src/main.c"
+    ],
+    "directory": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft",
+    "file": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/src/main.c",
+    "output": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/obj/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "--debug",
+      "-I/opt/homebrew/include",
+      "-I./lib",
+      "-I./src/include",
+      "-c",
+      "-o",
+      "obj/glad.o",
+      "src/glad.c"
+    ],
+    "directory": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft",
+    "file": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/src/glad.c",
+    "output": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/obj/glad.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "--debug",
+      "-I/opt/homebrew/include",
+      "-I./lib",
+      "-I./src/include",
+      "-c",
+      "-o",
+      "obj/shaders.o",
+      "src/shaders.c"
+    ],
+    "directory": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft",
+    "file": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/src/shaders.c",
+    "output": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/obj/shaders.o"
+  }
+]
