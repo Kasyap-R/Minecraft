@@ -1,11 +1,10 @@
 #include "include/shaders.h"
 #include <glad/glad.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 static char *loadShaderSource(char *filename) {
   FILE *file;
-  char ch;
-
   file = fopen(filename, "r");
 
   if (NULL == file) {
@@ -14,7 +13,7 @@ static char *loadShaderSource(char *filename) {
   }
 
   if (fseek(file, 0, SEEK_END) != 0) {
-    fprintf(stderr, "Failed to initialize GLFW\n");
+    fprintf(stderr, "Failed to seek end of file\n");
     fclose(file);
     exit(1);
   }
@@ -36,11 +35,10 @@ static char *loadShaderSource(char *filename) {
   }
 
   // Read bytes into memory
-  usize bytesRead = fread(content_heap, sizeof(char), fileSize, file);
+  size_t bytesRead = fread(content_heap, sizeof(char), fileSize, file);
   if (bytesRead < fileSize) {
     if (feof(file)) {
-      fprintf(stderr, "Unexpected End of Shader File\n");
-      printf("Unexpected end of file.\n");
+      fprintf(stderr, "Unexpected end of file.\n");
     } else if (ferror(file)) {
       fprintf(stderr, "Error reading shader file\n");
     }
@@ -57,12 +55,11 @@ static char *loadShaderSource(char *filename) {
 }
 
 u32 compileAndLinkShaders(char *vertexShaderPath, char *fragmentShaderPath) {
-  // Compiling Shader
+  // Compiling Vertex Shader
   char *vertexShaderSource_heap = loadShaderSource(vertexShaderPath);
-  char *fragmentShaderSource_heap = loadShaderSource(fragmentShaderPath);
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  const GLchar *source = vertexShaderSource_heap;
-  glShaderSource(vertexShader, 1, &source, NULL);
+  glShaderSource(vertexShader, 1,
+                 (const GLchar *const *)&vertexShaderSource_heap, NULL);
   glCompileShader(vertexShader);
 
   GLint success;
@@ -73,9 +70,11 @@ u32 compileAndLinkShaders(char *vertexShaderPath, char *fragmentShaderPath) {
     printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
   }
 
+  // Compiling Fragment Shader
+  char *fragmentShaderSource_heap = loadShaderSource(fragmentShaderPath);
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  source = fragmentShaderSource_heap;
-  glShaderSource(fragmentShader, 1, &source, NULL);
+  glShaderSource(fragmentShader, 1,
+                 (const GLchar *const *)&fragmentShaderSource_heap, NULL);
   glCompileShader(fragmentShader);
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
   if (!success) {
@@ -93,8 +92,9 @@ u32 compileAndLinkShaders(char *vertexShaderPath, char *fragmentShaderPath) {
   glLinkProgram(shaderProgramID);
   glGetProgramiv(shaderProgramID, GL_LINK_STATUS, &success);
   if (!success) {
-    glGetShaderInfoLog(shaderProgramID, 512, NULL, infoLog);
-    printf("ERROR::SHADER::VERTEX|FRAGMENT::LINKING_FAILED\n%s\n", infoLog);
+    glGetProgramInfoLog(shaderProgramID, 512, NULL,
+                        infoLog); // Correct function to get linking log
+    printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
   }
 
   glDeleteShader(vertexShader);

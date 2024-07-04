@@ -1,6 +1,6 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -g --debug -I/opt/homebrew/include -I./lib -I./src/include
+CFLAGS = -g --debug -I/opt/homebrew/include -I./lib -I./src/include 
 LDFLAGS = -L/opt/homebrew/lib -lglfw -framework OpenGL -ldl -lcglm -lm
 
 # Directories

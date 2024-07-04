@@ -1,10 +1,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
-#include <math.h>
 #include <stdbool.h>
 #include "common.h"
 #include "shaders.h"
+#include "stb_image.h"
+#include <cglm/cglm.h>
+#include <cglm/mat4.h>
 
 void framebuffer_size_callback(GLFWwindow *window, i32 width, i32 height) {
   glViewport(0, 0, width, height);
@@ -47,11 +49,13 @@ i32 main() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   float vertices[] = {
-      0.5f,  0.5f,  0.0f, // top right
-      0.5f,  -0.5f, 0.0f, // bottom right
-      -0.5f, -0.5f, 0.0f, // bottom left
-      -0.5f, 0.5f,  0.0f  // top left
+      // positions          // colors           // texture coords
+      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+      0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+      -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+      -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
   };
+
   unsigned int indices[] = {
       // note that we start from 0!
       0, 1, 3, // first triangle
@@ -76,9 +80,15 @@ i32 main() {
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
 
-  // Set vertex attribute pointers
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+  // Set vertex attribute pointers for coords, color, and texture
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
   // Unbind VAO and EBO (good practice)
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -87,8 +97,42 @@ i32 main() {
   u32 shader =
       compileAndLinkShaders("shaders/triangle.vert", "shaders/triangle.frag");
 
+  // Configure texture wrapping for both the s and t axes
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+  // Configure texture filtering when upscaling (using interpolation)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // Configure texture filtering when downscaling (using mipmaps)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+
+  // Load Texture
+  int width, height, nrChannels;
+  unsigned char *data =
+      stbi_load("textures/Wood_Texture.png", &width, &height, &nrChannels, 0);
+
+  // Create, bind and generate texture object
+  unsigned int texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, data);
+
+  free(data);
+
+  // Create minmaps for currently bound texture
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  // Set up transformation matrix
+  vec4 transform_vec = {0.0f, 0.0f, 0.0f, 1.0f};
+  mat4 transform_mat;
+  glm_mat4_identity(transform_mat);
+  glm_translate(transform_mat, transform_vec);
+
   // Uncomment to draw in wireframe mode
-  /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   while (!glfwWindowShouldClose(window)) {
     // Process input
@@ -98,15 +142,15 @@ i32 main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    float timeValue = glfwGetTime();
-    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-    int vertexColorLocation = glGetUniformLocation(shader, "ourColor");
-
     // Use the shader program and draw the triangle
     glUseProgram(shader);
-    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+    // Set transformation matrix in vertex shader
+    unsigned int transformLoc = glGetUniformLocation(shader, "transformation");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, transform_mat[0]);
 
     glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_2D, texture);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 

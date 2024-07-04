@@ -9,6 +9,23 @@
       "-I./src/include",
       "-c",
       "-o",
+      "obj/stb_image.o",
+      "src/stb_image.c"
+    ],
+    "directory": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft",
+    "file": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/src/stb_image.c",
+    "output": "/Users/kasyaprachuri/Documents/Game_Projects/Minecraft/obj/stb_image.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-g",
+      "--debug",
+      "-I/opt/homebrew/include",
+      "-I./lib",
+      "-I./src/include",
+      "-c",
+      "-o",
       "obj/main.o",
       "src/main.c"
     ],
